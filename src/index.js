@@ -19,9 +19,21 @@ const io = sockeio(server)
 
 app.use(express.static(publicPath))
 
+let count = 0
 //configure socket.io to listen to the 'connection' event
-io.on('connection', () => {
+io.on('connection', (socket) => {
     console.log('New WebSocket connection')
+    socket.emit('countUpdated', count)
+
+    //listen for the 'increment' event from the client
+    socket.on('increment', () => {
+        count++
+        //send back the new value of the counter
+        //socket.emit('countUpdated', count)
+        //next line emits to all clients connected!!!
+        io.emit('countUpdated', count)
+    })
+
 })
 //user server here instead of app
 server.listen(port, () => {
