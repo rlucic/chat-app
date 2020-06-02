@@ -9,6 +9,7 @@ const $urls = document.querySelector('#urls')
 //Templates
 const messageTemplate = document.querySelector('#message-template').innerHTML
 const locationMessageTemplate = document.querySelector('#location-message-template').innerHTML
+const sidebarTemplate = document.querySelector('#sidebar-template').innerHTML
 
 //Options
 const {username, room} = Qs.parse(location.search, {ignoreQueryPrefix: true})
@@ -17,27 +18,39 @@ const {username, room} = Qs.parse(location.search, {ignoreQueryPrefix: true})
 //to connect to the server:
 const socket = io()
 
-socket.on('message', (text) => {
-    console.log(text)
+socket.on('message', (msg) => {
+    console.log(msg)
     //display messages below
     const html = Mustache.render(messageTemplate, {
-        message: text.text,
-        createdAt: moment(text.createdAt).format('hh:mm:ss a')
+        username: msg.username,
+        message: msg.text,
+        createdAt: moment(msg.createdAt).format('hh:mm:ss a')
     })
     $messages.insertAdjacentHTML('beforeend', html)
 })
 
 socket.on('sendLocation', (locationMessage) => {
+    console.log('in chat.js: sendLocation')
     console.log(locationMessage)
     const html = Mustache.render(locationMessageTemplate, {
+        username: locationMessage.username,
         theURL: locationMessage.theURL,
         createdAt: moment(locationMessage.createdAt).format('hh:mm:ss a')
     })
     $messages.insertAdjacentHTML('beforeend', html)
 })
 
+socket.on('roomData', ({room, users}) => {
+    const html = Mustache.render(sidebarTemplate, {
+        room,
+        users
+    })
+
+    document.querySelector('#sidebar').innerHTML = html
+})
 
 $messageForm.addEventListener('submit', (e)=> {
+    //make form to not reload
     e.preventDefault()
    //disable form
     $messageFormButton.setAttribute('disabled', 'disabled')
@@ -72,7 +85,10 @@ $sendLocationButton.addEventListener('click', () => {
         const longitude = position.coords.longitude
 
         //socket.emit('sendLocation', {'latitude': latitude, 'longitude': longitude})
-        socket.emit('sendLocation', {'latitude': latitude, 'longitude': longitude}, () => {
+        socket.emit('sendLocation', {
+            'latitude': latitude, 
+            'longitude': longitude
+        }, () => {
             //acknowledgement callback function
             console.log('Location shared')
             $sendLocationButton.removeAttribute('disabled')
@@ -80,5 +96,12 @@ $sendLocationButton.addEventListener('click', () => {
     })
 })
 
-//emit a new event when someone joins, username and room are shortcuts for name: name
-socket.emit('join', {username, room})
+//emit a new event when someone joins, username and room are shortcuts for name: name, room: room
+socket.emit('join', {username, room}, (error) => {
+        //callback function for the emit event
+        if(error){
+            //an error came from the server in the callback
+            alert(error)
+            location.href= '/'
+        }
+    })
