@@ -31,7 +31,7 @@ app.use(express.static(publicPath))
  * in general:
  *     socket.emit,      io.emit,       socket.broadcast.emit
  * for a chat room:
- *                       io.to.emit     socket.broadcast.to().emit
+ *                       io.to().emit     socket.broadcast.to().emit
  */
 
 
