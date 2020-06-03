@@ -14,4 +14,11 @@ momentjs.com
 
 --- styles for the application: links.mead.io/chatassets
 
+--- deploy to heroku
+heroku create rgl-chat-app
+==> https://rgl-chat-app.herokuapp.com/ | https://git.heroku.com/rgl-chat-app.git
+git push heroku master (to push the code to heroku and deploy the application)
+==> deploys to:  https://rgl-chat-app.herokuapp.com/
+
+
 
